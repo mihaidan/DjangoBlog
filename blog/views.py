@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.contrib import messages
 from .models import Post
 from .forms import PostForm
 
@@ -28,9 +29,14 @@ def create_post(request):
     # pull the information from the request
     new_post = PostForm(request.POST or None)
 
-    # check if post is valid, then save
-    if new_post.is_valid():
-        new_post.save()
+    # adding a try and except for messages to be displayed
+    try:
+        # check if post is valid, then save
+        if new_post.is_valid():
+            new_post.save()
+            messages.success(request, "Post succesfully saved!")
+    except Exception as e:
+        messages.warning(request, "Post failed to save: {}.".format(e))
 
     context = { 'post': new_post }
 
@@ -41,16 +47,21 @@ def edit_post(request, pk):
     # pull the edit post from the Post table based on the primary key.
     e_post = get_object_or_404(Post, pk=pk)
 
-    # check if the request is a POST
-    if request.method == 'POST':
-        # update the post, and if it's valid, save it to the database
-        edit = PostForm(request.POST, instance=e_post)
+    # adding a try and except for messages to be displayed
+    try:
+        # check if the request is a POST
+        if request.method == 'POST':
+            # update the post, and if it's valid, save it to the database
+            edit = PostForm(request.POST, instance=e_post)
 
-        if edit.is_valid():
-            edit.save()
-    # if it's not, leave the post alone
-    else:
-        edit = PostForm(instance=e_post)
+            if edit.is_valid():
+                edit.save()
+                messages.success(request, "Post succesfully edited!")
+        # if it's not, leave the post alone
+        else:
+            edit = PostForm(instance=e_post)
+    except Exception as e:
+        messages.warning(request, "Post failed to save: {}.".format(e))
 
     context = { 'post': edit }
 
